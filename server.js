@@ -6,7 +6,7 @@ const fs = require("fs");
 require("dotenv").config();
 
 const app = express();
-const PORT = Number(process.env.PORT || 3000);
+const PORT = process.env.PORT || 10000;
 const HOST = "0.0.0.0";
 const OAUTH_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || "http://localhost:3000/auth/discord/callback";
 
@@ -36,15 +36,16 @@ app.disable("x-powered-by");
 // Using 127.0.0.1 for the page and localhost for the callback creates a
 // different browser cookie host and can cause "invalid_state" after login.
 app.use((req, res, next) => {
-  if (req.hostname === "127.0.0.1") {
-    const PORT = process.env.PORT || 10000;
-      /^127\.0\.0\.1(?=:\d+$|$)/,
-      "localhost"
-    );
-    return res.redirect(302, `${req.protocol}://${host}${req.originalUrl}`);
-  }
-  next();
+    if (req.hostname === "127.0.0.1") {
+        const host = String(req.get("host") || "0.0.0.0").replace(
+            /^127\.0\.0\.1(?=:\d+$|$)/,
+            "localhost"
+        );
+        return res.redirect(302, `${req.protocol}://${host}${req.originalUrl}`);
+    }
+    next();
 });
+
 
 app.use(express.json({ limit: "64kb" }));
 app.use(express.urlencoded({ extended: true, limit: "64kb" }));
